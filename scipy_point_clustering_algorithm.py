@@ -470,3 +470,17 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
 
             writer.addFeature(out_feature)
         del writer
+
+    def help(self):
+        """
+        Get the help documentation for this algorithm.
+        :return: Help text is html from string, the help html
+        :rtype: bool, str
+        """
+        help_data = open(os.path.join(
+            os.path.dirname(__file__),
+            "doc",
+            "hierarchical_clustering_by_identifier.html"
+        )).read()
+
+        return True, help_data

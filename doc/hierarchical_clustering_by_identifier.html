@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Hierarchical clustering by Identifier</title>
+</head>
+<body>
+<h1>Hierarchical clustering by Identifier</h1>
+<p>This tool implements a variation of the hierarchical clustering methodology
+    which guarantees features with different values in the identifier field will
+    never be in the same cluster. In all other respects the input and output are
+    identical to the <a href="hierarchical_clustering.html">Hierarchical
+        clustering</a> tool.</p>
+
+<h2>Input parameters</h2>
+
+<h3>Input layer</h3>
+
+<p>The base point dataset. The selected points within this dataset will be
+    clustered and written to the output dataset along with a cluster field.</p>
+
+<h3>Identifier field</h3>
+
+<p>Any field on the input feature set that contains identifiers for groups of
+    features to be clustered together. If two features have a different
+    identifier they will not be placed in the same cluster.</p>
+
+<h3>Cluster tolerance</h3>
+
+<p>The size of the cluster tolerance in projected units. What this means for the
+cluster depends on the linkage method and the cluster criterion.</p>
+
+<h3>Label field name</h3>
+
+<p>The name of the label field in the output dataset. By default it is "label".
+This field will be used to populate the id of the cluster.</p>
+
+<h3>Linkage method</h3>
+
+<p>The linkage method for points in the cluster. See the <a href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html">linkage</a>
+    docs for more detailed explanations of the values.</p>
+
+<h3>Linkage metric</h3>
+
+<p>The metric used to calculate the distance between the points in the cluster.
+    By default it uses euclidean distance. See the
+    <a href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html">pdist</a>
+    documentation for more detailed explanation of the values.</p>
+
+<h3>Cluster criterion</h3>
+
+<p>The cluster criterion used to build the cluster. By default set to "distance".
+    For a more detailed explanation see the <a href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.fcluster.html">fcluster</a> documentation.</p>
+
+<h2>Output parameters</h2>
+
+<h3>Clustered features</h3>
+
+<p>The point dataset with the cluster IDs written to the label field. All other
+fields of the feature are preserved.</p>
+
+</body>
+</html>
