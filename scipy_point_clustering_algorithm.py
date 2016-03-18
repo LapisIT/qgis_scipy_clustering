@@ -185,6 +185,7 @@ class HierarchicalClustering(GeoAlgorithm):
 
             writer.addFeature(out_feature)
         del writer
+
     def getIcon(self):
         """Get the icon.
         """
@@ -333,4 +334,23 @@ class KMeansClustering(GeoAlgorithm):
         """
         return ScipyPointClusteringUtils.getIcon()
 
+
+class HierarchicalClusteringByIdentifier(HierarchicalClustering):
+    """
+    Heirarchical clustering for features with some identifier.
+    """
+
+    IDENTIFIER_FIELD = 'IDENTIFIER_FIELD'
+
+    def defineCharacteristics(self):
+        """
+        Call the parent and set attributes, then modify for this algorithm.
+        """
+        HierarchicalClustering.defineCharacteristics(self)
+
+        self.name = 'Hierarchical Clustering by Identifier'
+
+        self.parameters.insert(1, ParameterTableField(
+            self.IDENTIFIER_FIELD, "Identifier field", self.INPUT_LAYER
+        ))
 

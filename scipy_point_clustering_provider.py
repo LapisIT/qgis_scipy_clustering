@@ -31,7 +31,9 @@ __revision__ = '$Format:%H$'
 
 from processing.core.AlgorithmProvider import AlgorithmProvider
 from processing.core.ProcessingConfig import Setting, ProcessingConfig
-from scipy_point_clustering_algorithm import HierarchicalClustering
+from scipy_point_clustering_algorithm import (
+    HierarchicalClustering, KMeansClustering, HierarchicalClusteringByIdentifier
+)
 from scipy_point_clustering_utils import ScipyPointClusteringUtils
 
 
@@ -45,7 +47,7 @@ class ScipyPointClusteringProvider(AlgorithmProvider):
         self.activate = False
 
         # Load algorithms
-        self.alglist = [HierarchicalClustering()]
+        self.alglist = [HierarchicalClustering(), KMeansClustering(), HierarchicalClusteringByIdentifier()]
         for alg in self.alglist:
             alg.provider = self
 
