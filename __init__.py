@@ -5,10 +5,14 @@ Docstring
 """
 
 __author__ = "henry"
-__copyright__ = "henry 2016"
-__credits__ = ["henry", ]
-__license__ = "Apache 2.0"
-__version__ = "0.0.1"
-__maintainer__ = "henry"
-__email__ = "user@some.domain"
-__status__ = "Prototype"
+
+# noinspection PyPep8Naming
+def classFactory(iface):  # pylint: disable=invalid-name
+    """Load DifferentialPrivacy class from file DifferentialPrivacy.
+
+    :param iface: A QGIS interface instance.
+    :type iface: QgsInterface
+    """
+    #
+    from .scipy_point_clustering import ScipyPointClusteringPlugin
+    return ScipyPointClusteringPlugin()

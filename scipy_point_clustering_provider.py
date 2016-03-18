@@ -31,12 +31,12 @@ __revision__ = '$Format:%H$'
 
 from processing.core.AlgorithmProvider import AlgorithmProvider
 from processing.core.ProcessingConfig import Setting, ProcessingConfig
-from scipy_point_clustering_algorithm import ScipyPointClusteringAlgorithm
+from scipy_point_clustering_algorithm import HierarchicalClustering
+from scipy_point_clustering_utils import ScipyPointClusteringUtils
 
 
 class ScipyPointClusteringProvider(AlgorithmProvider):
 
-    MY_DUMMY_SETTING = 'MY_DUMMY_SETTING'
 
     def __init__(self):
         AlgorithmProvider.__init__(self)
@@ -45,7 +45,7 @@ class ScipyPointClusteringProvider(AlgorithmProvider):
         self.activate = False
 
         # Load algorithms
-        self.alglist = [ScipyPointClusteringAlgorithm()]
+        self.alglist = [HierarchicalClustering()]
         for alg in self.alglist:
             alg.provider = self
 
@@ -58,17 +58,12 @@ class ScipyPointClusteringProvider(AlgorithmProvider):
         deactivating the algorithms in the provider.
         """
         AlgorithmProvider.initializeSettings(self)
-        ProcessingConfig.addSetting(Setting('Example algorithms',
-            ScipyPointClusteringProvider.MY_DUMMY_SETTING,
-            'Example setting', 'Default value'))
 
     def unload(self):
         """Setting should be removed here, so they do not appear anymore
         when the plugin is unloaded.
         """
         AlgorithmProvider.unload(self)
-        ProcessingConfig.removeSetting(
-            ScipyPointClusteringProvider.MY_DUMMY_SETTING)
 
     def getName(self):
         """This is the name that will appear on the toolbox group.
@@ -81,12 +76,12 @@ class ScipyPointClusteringProvider(AlgorithmProvider):
     def getDescription(self):
         """This is the provired full name.
         """
-        return 'Implenetations of clustering based on scipy'
+        return 'Scipy Point Clustering'
 
     def getIcon(self):
-        """We return the default icon.
+        """Get the icon.
         """
-        return AlgorithmProvider.getIcon(self)
+        return ScipyPointClusteringUtils.getIcon()
 
     def _loadAlgorithms(self):
         """Here we fill the list of algorithms in self.algs.
