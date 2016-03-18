@@ -30,11 +30,13 @@ __copyright__ = '(C) 2016 by Henry Walshaw'
 __revision__ = '$Format:%H$'
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QgsField, QgsFeature
+from qgis.core import QgsField, QgsFeature, QgsGeometry, QgsPoint, QgsFields
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.parameters import (
-    ParameterVector, ParameterString, ParameterSelection, ParameterNumber)
+    ParameterVector, ParameterString, ParameterSelection, ParameterNumber,
+    ParameterTableField
+)
 from processing.core.outputs import OutputVector
 from processing.tools import dataobjects, vector
 import numpy as np
@@ -109,7 +111,7 @@ class HierarchicalClustering(GeoAlgorithm):
 
         # We add a vector layer as output
         self.addOutput(OutputVector(self.OUTPUT_LAYER,
-            self.tr('Output layer with selected features')))
+            self.tr('Clustered features')))
 
     def processAlgorithm(self, progress):
         """Here is where the processing itself takes place."""
@@ -183,8 +185,152 @@ class HierarchicalClustering(GeoAlgorithm):
 
             writer.addFeature(out_feature)
         del writer
+    def getIcon(self):
+        """Get the icon.
+        """
+        return ScipyPointClusteringUtils.getIcon()
+
+
+class KMeansClustering(GeoAlgorithm):
+    """
+    K-means clustering implementation
+    """
+
+    OUTPUT_LAYER = 'OUTPUT_LAYER'
+    INPUT_LAYER = 'INPUT_LAYER'
+    K = 'K'
+    MINIT = 'MINIT'
+    LABEL_FIELD = 'LABEL_FIELD'
+    CENTROID_OUTPUT = 'CENTROID_OUTPUT'
+
+    _minits = ['random', 'points']
+
+    def defineCharacteristics(self):
+        """Here we define the inputs and output of the algorithm, along
+        with some other properties.
+        """
+        self.name = 'K-means clustering'
+
+        # The branch of the toolbox under which the algorithm will appear
+        self.group = 'Vector'
+
+        # We add the input vector layer. It can have any kind of geometry
+        # It is a mandatory (not optional) one, hence the False argument
+        self.addParameter(ParameterVector(
+            self.INPUT_LAYER,
+            self.tr('Input layer'),
+            [ParameterVector.VECTOR_TYPE_POINT],
+            False
+        ))
+
+        self.addParameter(ParameterNumber(
+            self.K,
+            self.tr('K (number of clusters'),
+            minValue=2,
+            default=3
+        ))
+
+        self.addParameter(ParameterString(
+            self.LABEL_FIELD, self.tr('Label field name'), 'label'
+        ))
+
+        self.addParameter(ParameterSelection(
+            self.MINIT,
+            self.tr("Method for initialization"),
+            self._minits
+        ))
+
+        # We add a vector layer as output
+        self.addOutput(OutputVector(self.OUTPUT_LAYER,
+                                    self.tr('Clustered features')))
+
+        self.addOutput(OutputVector(self.CENTROID_OUTPUT,
+                                    self.tr('Cluster centroids')))
+
+    def processAlgorithm(self, progress):
+        """Here is where the processing itself takes place."""
+
+        # The first thing to do is retrieve the values of the parameters
+        # entered by the user
+        inputFilename = self.getParameterValue(self.INPUT_LAYER)
+        k = int(self.getParameterValue(self.K))
+        minit = self._minits[self.getParameterValue(self.MINIT)]
+        fieldName = self.getParameterValue(self.LABEL_FIELD)
+
+        output = self.getOutputFromName(self.OUTPUT_LAYER)
+        centroid_output = self.getOutputFromName(self.CENTROID_OUTPUT)
+
+        # Input layers vales are always a string with its location.
+        # That string can be converted into a QGIS object (a
+        # QgsVectorLayer in this case) using the
+        # processing.getObjectFromUri() method.
+        vectorLayer = dataobjects.getObjectFromUri(inputFilename)
+
+        # And now we can process
+
+        # Loop over the features to get the geometries and the associated
+        # feature id
+        features = vector.features(vectorLayer)
+        points = []
+        feature_ids = []
+        for f in features:
+            g = f.geometry()
+            p = g.asPoint()
+            points.append([p.x(), p.y()])
+            feature_ids.append(f.id())
+
+        # actually do the clustering
+        points = np.array(points)
+
+        centroids, y = scipy.cluster.vq.kmeans2(points, k, minit=minit)
+
+        labels = dict(zip(feature_ids, y))
+
+        provider = vectorLayer.dataProvider()
+        fields = provider.fields()
+        fields.append(QgsField(fieldName, QVariant.Int))
+        writer = output.getVectorWriter(
+            fields, provider.geometryType(), provider.crs())
+
+        # assert False, labels
+
+        out_feature = QgsFeature()
+        out_feature.setFields(fields)
+
+        features = vector.features(vectorLayer)
+        for f in features:
+            attributes = f.attributes()
+            attributes.append(int(labels[f.id()]))
+
+            geom = f.geometry()
+
+            out_feature.setGeometry(geom)
+            out_feature.setAttributes(attributes)
+
+            writer.addFeature(out_feature)
+        del writer
+
+        fields = QgsFields()
+        fields.append(QgsField(fieldName, QVariant.Int))
+        writer = centroid_output.getVectorWriter(
+            fields, provider.geometryType(), provider.crs())
+
+        out_feature = QgsFeature()
+        out_feature.setFields(fields)
+
+        for i, centroid in enumerate(centroids):
+
+            geom = QgsPoint(*centroid)
+            out_feature.setGeometry(QgsGeometry.fromPoint(geom))
+            out_feature.setAttributes([i, ])
+            writer.addFeature(out_feature)
+
+        del writer
+
 
     def getIcon(self):
         """Get the icon.
         """
         return ScipyPointClusteringUtils.getIcon()
+
+
