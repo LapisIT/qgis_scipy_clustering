@@ -42,7 +42,7 @@ from processing.tools import dataobjects, vector
 import numpy as np
 import scipy.cluster.vq
 import scipy.cluster.hierarchy
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 
 from scipy_point_clustering_utils import ScipyPointClusteringUtils
 
@@ -354,3 +354,90 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
             self.IDENTIFIER_FIELD, "Identifier field", self.INPUT_LAYER
         ))
 
+    def processAlgorithm(self, progress):
+        """Here is where the processing itself takes place."""
+
+        # The first thing to do is retrieve the values of the parameters
+        # entered by the user
+        inputFilename = self.getParameterValue(self.INPUT_LAYER)
+        output = self.getOutputFromName(self.OUTPUT_LAYER)
+        fieldName = self.getParameterValue(self.LABEL_FIELD)
+        tolerance = float(self.getParameterValue(self.TOLERANCE))
+        method = self._linkage_methods[
+            self.getParameterValue(self.LINKAGE_METHOD)]
+        metric = self._linkage_metrics[
+            self.getParameterValue(self.LINKAGE_METRIC)]
+        criterion = self._criterions[self.getParameterValue(self.CRITERION)]
+        identifier_field = self.getParameterValue(self.IDENTIFIER_FIELD)
+
+        # Input layers vales are always a string with its location.
+        # That string can be converted into a QGIS object (a
+        # QgsVectorLayer in this case) using the
+        # processing.getObjectFromUri() method.
+        vectorLayer = dataobjects.getObjectFromUri(inputFilename)
+
+        # And now we can process
+
+        # Loop over the features to get the geometries and the associated
+        # feature id
+        features = vector.features(vectorLayer)
+        points = []
+        feature_ids = []
+        identifiers = []
+        for f in features:
+            g = f.geometry()
+            p = g.asPoint()
+            points.append([p.x(), p.y()])
+            feature_ids.append(f.id())
+            identifiers.append(f[identifier_field])
+
+        # actually do the clustering
+        points = np.array(points)
+        identifiers = np.array(identifiers)
+
+        # no we ensure that no matter how close the points are, the locatiosn of
+        # the clusters is dependent on the label.
+        distances = squareform(pdist(points, metric=metric))
+        increase_offseets = np.array([
+            identifiers != val for val in identifiers
+        ])
+        distances[increase_offseets] = np.inf
+        distances = squareform(distances) # recompress the distance matrix
+
+        links = scipy.cluster.hierarchy.linkage(
+            distances, method=method, metric=metric)
+
+        y = scipy.cluster.hierarchy.fcluster(
+            links,
+            tolerance,
+            criterion=criterion
+        )
+
+        labels = dict(zip(feature_ids, y))
+
+        # Now write the features to the new dataset along with the label
+        # label_idx = fields.fieldNameIndex(fieldName)
+
+        provider = vectorLayer.dataProvider()
+        fields = provider.fields()
+        fields.append(QgsField(fieldName, QVariant.Int))
+        writer = output.getVectorWriter(
+            fields, provider.geometryType(), provider.crs())
+
+        # assert False, labels
+
+        out_feature = QgsFeature()
+        out_feature.setFields(fields)
+
+        features = vector.features(vectorLayer)
+        for f in features:
+            attributes = f.attributes()
+            attributes.append(int(labels[f.id()]))
+
+            geom = f.geometry()
+
+            out_feature.setGeometry(geom)
+            out_feature.setAttributes(attributes)
+
+            writer.addFeature(out_feature)
+        del writer
