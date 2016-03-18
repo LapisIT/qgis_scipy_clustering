@@ -29,6 +29,8 @@ __copyright__ = '(C) 2016 by Henry Walshaw'
 
 __revision__ = '$Format:%H$'
 
+import os.path
+
 from PyQt4.QtCore import QVariant
 from qgis.core import QgsField, QgsFeature, QgsGeometry, QgsPoint, QgsFields
 
@@ -190,6 +192,20 @@ class HierarchicalClustering(GeoAlgorithm):
         """Get the icon.
         """
         return ScipyPointClusteringUtils.getIcon()
+
+    def help(self):
+        """
+        Get the help documentation for this algorithm.
+        :return: Help text is html from string, the help html
+        :rtype: bool, str
+        """
+        help_data = open(os.path.join(
+            os.path.dirname(__file__),
+            "doc",
+            "hierarchical_clustering.html"
+        )).read()
+
+        return True, help_data
 
 
 class KMeansClustering(GeoAlgorithm):
