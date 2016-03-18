@@ -1,0 +1,44 @@
+# This file contains metadata for your plugin. Since
+# version 2.0 of QGIS this is the proper way to supply
+# information about a plugin. The old method of
+# embedding metadata in __init__.py will
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Scipy Point Clustering
+qgisMinimumVersion=2.0
+description=This plugin implements clustering for point data using the scipy module.
+version=0.1
+author=Henry Walshaw
+email=henry.walshaw@spatialvision.com.au
+
+about=This plugin implements point custering in scipy and add a label integer
+      field to the feature class for the clustered data. Both hierarchical and
+      k-means clustering are implemented.
+
+      seagull by Lane F. Kinkade from the Noun Project
+      https://thenounproject.com/term/seagull/166081
+
+tracker=https://github.com/SpatialVision/qgis_scipy_clustering/issues
+repository=https://github.com/SpatialVision/qgis_scipy_clustering
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=vector
+
+homepage=https://github.com/SpatialVision/qgis_scipy_clustering/issues
+category=Analysis
+icon=icons/seagull.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
