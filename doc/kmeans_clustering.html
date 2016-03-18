@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>K-Means clustering</title>
+</head>
+<body>
+<h1>K-Means clustering</h1>
+<p>This tool implements <a href="http://docs.scipy.org/doc/scipy/reference/cluster.vq.html">k-means clustering</a>
+    from the scipy library. In particular this uses <a href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html">kmeans2</a>
+    to cluster an input point dataset. The cluster labels are then added to a
+    label field in the output dataset. In addition the centroids of the clusters
+    are output to a new dataset, also with the label field.</p>
+
+<h2>Input parameters</h2>
+
+<h3>Input layer</h3>
+
+<p>The base point dataset. The selected points within this dataset will be
+    clustered and written to the output dataset along with a cluster field.</p>
+
+<h3>K (number of clusters)</h3>
+
+<p>The number of clusters built by the algorithm. This does not guarantee that
+    this many clusters will be formed.</p>
+
+<h3>Method for initialization</h3>
+
+<p>The method for first guessing where the cluster centroids will be. For more
+detailed explanation see the <a href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html">kmeans2</a> documentation.</p>
+
+<h2>Output parameters</h2>
+
+<h3>Clustered features</h3>
+
+<p>The point dataset with the cluster IDs written to the label field. All other
+fields of the feature are preserved.</p>
+
+<h3>Cluster centroids</h3>
+
+<p>The point dataset with the cluster centroids. The cluster centroids are tagged
+with the cluster ID using the label field name.</p>
+
+</body>
+</html>

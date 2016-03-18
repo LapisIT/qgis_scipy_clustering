@@ -344,11 +344,24 @@ class KMeansClustering(GeoAlgorithm):
 
         del writer
 
-
     def getIcon(self):
         """Get the icon.
         """
         return ScipyPointClusteringUtils.getIcon()
+
+    def help(self):
+        """
+        Get the help documentation for this algorithm.
+        :return: Help text is html from string, the help html
+        :rtype: bool, str
+        """
+        help_data = open(os.path.join(
+            os.path.dirname(__file__),
+            "doc",
+            "kmeans_clustering.html"
+        )).read()
+
+        return True, help_data
 
 
 class HierarchicalClusteringByIdentifier(HierarchicalClustering):
