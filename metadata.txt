@@ -18,6 +18,12 @@ about=This plugin implements point custering in scipy and add a label integer
       field to the feature class for the clustered data. Both hierarchical and
       k-means clustering are implemented.
 
+      All credit to the scipy team for the original implementation of the cluster
+      algorithms.
+
+      Jones E, Oliphant E, Peterson P, et al. SciPy: Open Source Scientific
+      Tools for Python, 2001-, http://www.scipy.org/ [Online].
+
       seagull by Lane F. Kinkade from the Noun Project
       https://thenounproject.com/term/seagull/166081
 
@@ -28,7 +34,8 @@ repository=https://github.com/SpatialVision/qgis_scipy_clustering
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=0.1 (19th March 2015) Cluster algorithms created and submitted to the
+          QGIS plugin repository.
 
 # Tags are comma separated with spaces allowed
 tags=vector
