@@ -10,7 +10,7 @@
 name=Scipy Point Clustering
 qgisMinimumVersion=2.0
 description=This plugin implements clustering for point data using the scipy module.
-version=0.1
+version=0.2
 author=Henry Walshaw
 email=henry.walshaw@spatialvision.com.au
 
