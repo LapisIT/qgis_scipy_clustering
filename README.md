@@ -1,2 +1,24 @@
-# qgis_scipy_clustering
-A QGIS Processing provider that implements scipy clustering of point data for QGIS.
+# QGIS Scipy Clustering
+
+This plugin implements point custering in scipy and add a label integer
+field to the feature class for the clustered data. Both hierarchical and
+k-means clustering are implemented.
+
+This is a Procesing plugin (actuvated automatically) and can be found in
+the processing toolbox.
+
+Please note that there are memory limitations in hierarchical clustering -
+the space required to create the clusters is O(n^2), which means that
+larger datasets will run out of memory fast. As such there is a plugin
+setting in the Processing options that sets the upper limit of points to
+process, by default set at 10,000. K-means is much more forgiving in terms
+of memory, so the limit is not enforced in those algorithms.
+
+All credit to the scipy team for the original implementation of the cluster
+algorithms.
+
+Jones E, Oliphant E, Peterson P, et al. SciPy: Open Source Scientific
+Tools for Python, 2001-, http://www.scipy.org/ [Online].
+
+seagull by Lane F. Kinkade from the Noun Project
+https://thenounproject.com/term/seagull/166081
