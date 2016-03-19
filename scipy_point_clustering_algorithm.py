@@ -39,7 +39,7 @@ from processing.core.parameters import (
     ParameterVector, ParameterString, ParameterSelection, ParameterNumber,
     ParameterTableField
 )
-from processing.core.outputs import OutputVector
+from processing.core.outputs import OutputVector, OutputNumber
 from processing.tools import dataobjects, vector
 import numpy as np
 import scipy.cluster.vq
@@ -68,6 +68,7 @@ class HierarchicalClustering(GeoAlgorithm):
     LABEL_FIELD = 'LABEL_FIELD'
     TOLERANCE = 'TOLERANCE'
     CRITERION = 'CRITERION'
+    NUM_CLUSTERS = 'NUM_CLUSTERS'
 
     _linkage_methods = ['single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward']
     _linkage_metrics = ['euclidean', 'cityblock']
@@ -114,6 +115,10 @@ class HierarchicalClustering(GeoAlgorithm):
         # We add a vector layer as output
         self.addOutput(OutputVector(self.OUTPUT_LAYER,
             self.tr('Clustered features')))
+
+        self.addOutput(OutputNumber(
+            self.NUM_CLUSTERS, self.tr("Number of clusters formed")
+        ))
 
     def processAlgorithm(self, progress):
         """Here is where the processing itself takes place."""
@@ -188,6 +193,8 @@ class HierarchicalClustering(GeoAlgorithm):
             writer.addFeature(out_feature)
         del writer
 
+        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
+
     def getIcon(self):
         """Get the icon.
         """
@@ -219,6 +226,7 @@ class KMeansClustering(GeoAlgorithm):
     MINIT = 'MINIT'
     LABEL_FIELD = 'LABEL_FIELD'
     CENTROID_OUTPUT = 'CENTROID_OUTPUT'
+    NUM_CLUSTERS = 'NUM_CLUSTERS'
 
     _minits = ['random', 'points']
 
@@ -263,6 +271,10 @@ class KMeansClustering(GeoAlgorithm):
 
         self.addOutput(OutputVector(self.CENTROID_OUTPUT,
                                     self.tr('Cluster centroids')))
+
+        self.addOutput(OutputNumber(
+            self.NUM_CLUSTERS, self.tr("Number of clusters formed")
+        ))
 
     def processAlgorithm(self, progress):
         """Here is where the processing itself takes place."""
@@ -343,6 +355,8 @@ class KMeansClustering(GeoAlgorithm):
             writer.addFeature(out_feature)
 
         del writer
+
+        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
 
     def getIcon(self):
         """Get the icon.
@@ -470,6 +484,8 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
 
             writer.addFeature(out_feature)
         del writer
+
+        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
 
     def help(self):
         """
