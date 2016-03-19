@@ -121,7 +121,12 @@ class HierarchicalClustering(GeoAlgorithm):
         ))
 
     def processAlgorithm(self, progress):
-        """Here is where the processing itself takes place."""
+        """
+        Here is where the processing itself takes place.
+
+        :param progress: Interface to the processing window
+        :type progress: processing.gui.AlgorithmDialog.AlgorithmDialog
+        """
 
         # The first thing to do is retrieve the values of the parameters
         # entered by the user
@@ -133,6 +138,13 @@ class HierarchicalClustering(GeoAlgorithm):
         metric = self._linkage_metrics[self.getParameterValue(self.LINKAGE_METRIC)]
         criterion = self._criterions[self.getParameterValue(self.CRITERION)]
 
+        progress.setPercentage(0)
+
+        if tolerance <= 0.0:
+            progress.setInfo("Please set a cluster tolerance greater than zero",
+                             error=True)
+            raise ValueError("Tolerance <= zero")
+
         # Input layers vales are always a string with its location.
         # That string can be converted into a QGIS object (a
         # QgsVectorLayer in this case) using the
@@ -143,10 +155,17 @@ class HierarchicalClustering(GeoAlgorithm):
 
         # Loop over the features to get the geometries and the associated
         # feature id
+        progress.setInfo("Extracting geometries from the input layer",
+                         error=False)
+
         features = vector.features(vectorLayer)
+        feature_count = vectorLayer.featureCount()
         points = []
         feature_ids = []
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                i * 30. / feature_count
+            )
             g = f.geometry()
             p = g.asPoint()
             points.append([p.x(), p.y()])
@@ -155,6 +174,8 @@ class HierarchicalClustering(GeoAlgorithm):
         # actually do the clustering
         points = np.array(points)
 
+        progress.setInfo("Building hierarchical clusters")
+
         y = scipy.cluster.hierarchy.fclusterdata(
             points,
             tolerance,
@@ -162,6 +183,7 @@ class HierarchicalClustering(GeoAlgorithm):
             method=method,
             metric=metric
         )
+        progress.setPercentage(60)
 
         labels = dict(zip(feature_ids, y))
 
@@ -179,8 +201,13 @@ class HierarchicalClustering(GeoAlgorithm):
         out_feature = QgsFeature()
         out_feature.setFields(fields)
 
+        progress.setInfo("Writing clustered data to output")
+
         features = vector.features(vectorLayer)
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                60 + i * 30. / feature_count
+            )
 
             attributes = f.attributes()
             attributes.append(int(labels[f.id()]))
@@ -193,7 +220,11 @@ class HierarchicalClustering(GeoAlgorithm):
             writer.addFeature(out_feature)
         del writer
 
-        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
+        num_clusters = len(np.unique(y))
+        self.setOutputValue(self.NUM_CLUSTERS, num_clusters)
+
+        progress.setInfo("{} clusters formed.".format(num_clusters))
+        progress.setPercentage(100)
 
     def getIcon(self):
         """Get the icon.
@@ -277,7 +308,12 @@ class KMeansClustering(GeoAlgorithm):
         ))
 
     def processAlgorithm(self, progress):
-        """Here is where the processing itself takes place."""
+        """
+        Here is where the processing itself takes place.
+
+        :param progress: Interface to the processing window
+        :type progress: processing.gui.AlgorithmDialog.AlgorithmDialog
+        """
 
         # The first thing to do is retrieve the values of the parameters
         # entered by the user
@@ -289,6 +325,13 @@ class KMeansClustering(GeoAlgorithm):
         output = self.getOutputFromName(self.OUTPUT_LAYER)
         centroid_output = self.getOutputFromName(self.CENTROID_OUTPUT)
 
+        progress.setPercentage(0)
+
+        if k != float((self.getParameterValue(self.K))):
+            progress.setInfo("K must be a whole number",
+                             error=True)
+            raise ValueError("K is not an integer")
+
         # Input layers vales are always a string with its location.
         # That string can be converted into a QGIS object (a
         # QgsVectorLayer in this case) using the
@@ -299,10 +342,17 @@ class KMeansClustering(GeoAlgorithm):
 
         # Loop over the features to get the geometries and the associated
         # feature id
+        progress.setInfo("Extracting geometries from the input layer",
+                         error=False)
+
         features = vector.features(vectorLayer)
+        feature_count = vectorLayer.featureCount()
         points = []
         feature_ids = []
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                i * 25. / feature_count
+            )
             g = f.geometry()
             p = g.asPoint()
             points.append([p.x(), p.y()])
@@ -311,7 +361,11 @@ class KMeansClustering(GeoAlgorithm):
         # actually do the clustering
         points = np.array(points)
 
+        progress.setInfo("Building k-means clusters")
+
         centroids, y = scipy.cluster.vq.kmeans2(points, k, minit=minit)
+
+        progress.setPercentage(50)
 
         labels = dict(zip(feature_ids, y))
 
@@ -326,8 +380,13 @@ class KMeansClustering(GeoAlgorithm):
         out_feature = QgsFeature()
         out_feature.setFields(fields)
 
+        progress.setInfo("Writing clustered data to output")
+
         features = vector.features(vectorLayer)
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                50 + i * 25. / feature_count
+            )
             attributes = f.attributes()
             attributes.append(int(labels[f.id()]))
 
@@ -339,6 +398,8 @@ class KMeansClustering(GeoAlgorithm):
             writer.addFeature(out_feature)
         del writer
 
+        progress.setInfo("Writing centroids to output")
+
         fields = QgsFields()
         fields.append(QgsField(fieldName, QVariant.Int))
         writer = centroid_output.getVectorWriter(
@@ -348,6 +409,9 @@ class KMeansClustering(GeoAlgorithm):
         out_feature.setFields(fields)
 
         for i, centroid in enumerate(centroids):
+            progress.setPercentage(
+                90 + i * 10. / k
+            )
 
             geom = QgsPoint(*centroid)
             out_feature.setGeometry(QgsGeometry.fromPoint(geom))
@@ -356,7 +420,11 @@ class KMeansClustering(GeoAlgorithm):
 
         del writer
 
-        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
+        num_clusters = len(np.unique(y))
+        self.setOutputValue(self.NUM_CLUSTERS, num_clusters)
+
+        progress.setInfo("{} clusters formed.".format(num_clusters))
+        progress.setPercentage(100)
 
     def getIcon(self):
         """Get the icon.
@@ -398,7 +466,12 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
         ))
 
     def processAlgorithm(self, progress):
-        """Here is where the processing itself takes place."""
+        """
+        Here is where the processing itself takes place.
+
+        :param progress: Interface to the processing window
+        :type progress: processing.gui.AlgorithmDialog.AlgorithmDialog
+        """
 
         # The first thing to do is retrieve the values of the parameters
         # entered by the user
@@ -413,6 +486,13 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
         criterion = self._criterions[self.getParameterValue(self.CRITERION)]
         identifier_field = self.getParameterValue(self.IDENTIFIER_FIELD)
 
+        progress.setPercentage(0)
+
+        if tolerance <= 0.0:
+            progress.setInfo("Please set a cluster tolerance greater than zero",
+                             error=True)
+            raise ValueError("Tolerance <= zero")
+
         # Input layers vales are always a string with its location.
         # That string can be converted into a QGIS object (a
         # QgsVectorLayer in this case) using the
@@ -423,11 +503,18 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
 
         # Loop over the features to get the geometries and the associated
         # feature id
+        progress.setInfo("Extracting geometries from the input layer",
+                         error=False)
+
         features = vector.features(vectorLayer)
+        feature_count = vectorLayer.featureCount()
         points = []
         feature_ids = []
         identifiers = []
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                i * 20. / feature_count
+            )
             g = f.geometry()
             p = g.asPoint()
             points.append([p.x(), p.y()])
@@ -438,6 +525,8 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
         points = np.array(points)
         identifiers = np.array(identifiers)
 
+        progress.setInfo("Building hierarchical clusters")
+
         # no we ensure that no matter how close the points are, the locatiosn of
         # the clusters is dependent on the label.
         distances = squareform(pdist(points, metric=metric))
@@ -446,6 +535,7 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
         ])
         distances[increase_offseets] = np.inf
         distances = squareform(distances) # recompress the distance matrix
+        progress.setPercentage(40)
 
         links = scipy.cluster.hierarchy.linkage(
             distances, method=method, metric=metric)
@@ -455,6 +545,7 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
             tolerance,
             criterion=criterion
         )
+        progress.setPercentage(60)
 
         labels = dict(zip(feature_ids, y))
 
@@ -472,8 +563,14 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
         out_feature = QgsFeature()
         out_feature.setFields(fields)
 
+        progress.setInfo("Writing clustered data to output")
+
         features = vector.features(vectorLayer)
-        for f in features:
+        for i, f in enumerate(features, 1):
+            progress.setPercentage(
+                60 + i * 30. / feature_count
+            )
+
             attributes = f.attributes()
             attributes.append(int(labels[f.id()]))
 
@@ -485,7 +582,11 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
             writer.addFeature(out_feature)
         del writer
 
-        self.setOutputValue(self.NUM_CLUSTERS, len(np.unique(y)))
+        num_clusters = len(np.unique(y))
+        self.setOutputValue(self.NUM_CLUSTERS, num_clusters)
+
+        progress.setInfo("{} clusters formed.".format(num_clusters))
+        progress.setPercentage(100)
 
     def help(self):
         """
