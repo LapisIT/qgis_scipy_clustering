@@ -35,6 +35,7 @@ from PyQt4.QtCore import QVariant
 from qgis.core import QgsField, QgsFeature, QgsGeometry, QgsPoint, QgsFields
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
+from processing.core.ProcessingConfig import ProcessingConfig
 from processing.core.parameters import (
     ParameterVector, ParameterString, ParameterSelection, ParameterNumber,
     ParameterTableField
@@ -155,11 +156,24 @@ class HierarchicalClustering(GeoAlgorithm):
 
         # Loop over the features to get the geometries and the associated
         # feature id
+        feature_count = vectorLayer.selectedFeatureCount()
+        point_limit = int(ProcessingConfig.getSetting(
+            ScipyPointClusteringUtils.POINT_LIMIT
+        ))
+        if feature_count > point_limit:
+            progress.setInfo(
+                "Number of features ({}) exceeds the plugin point limit ({}). "
+                "If necessary the point limit setting can be adjusted in the "
+                "Processing Options for the Scipy Point Clustering provider.".format(
+                    feature_count, point_limit
+                ),
+                error=True
+            )
+            raise ValueError("Feature Count > point limit")
         progress.setInfo("Extracting geometries from the input layer",
                          error=False)
 
         features = vector.features(vectorLayer)
-        feature_count = vectorLayer.featureCount()
         points = []
         feature_ids = []
         for i, f in enumerate(features, 1):
@@ -346,7 +360,7 @@ class KMeansClustering(GeoAlgorithm):
                          error=False)
 
         features = vector.features(vectorLayer)
-        feature_count = vectorLayer.featureCount()
+        feature_count = vectorLayer.selectedFeatureCount()
         points = []
         feature_ids = []
         for i, f in enumerate(features, 1):
@@ -501,13 +515,28 @@ class HierarchicalClusteringByIdentifier(HierarchicalClustering):
 
         # And now we can process
 
-        # Loop over the features to get the geometries and the associated
-        # feature id
+        feature_count = vectorLayer.selectedFeatureCount()
+        point_limit = int(ProcessingConfig.getSetting(
+            ScipyPointClusteringUtils.POINT_LIMIT
+        ))
+        if feature_count > point_limit:
+            progress.setInfo(
+                "Number of features ({}) exceeds the plugin point limit ({}). "
+                "If necessary the point limit setting can be adjusted in the "
+                "Processing Options for the Scipy Point Clustering provider.".format(
+                    feature_count, point_limit
+                ),
+                error=True
+            )
+            raise ValueError("Feature Count > point limit")
+
         progress.setInfo("Extracting geometries from the input layer",
                          error=False)
 
+        # Loop over the features to get the geometries and the associated
+        # feature id
+
         features = vector.features(vectorLayer)
-        feature_count = vectorLayer.featureCount()
         points = []
         feature_ids = []
         identifiers = []

@@ -60,12 +60,21 @@ class ScipyPointClusteringProvider(AlgorithmProvider):
         deactivating the algorithms in the provider.
         """
         AlgorithmProvider.initializeSettings(self)
+        ProcessingConfig.addSetting(Setting(
+            self.getDescription(),
+            ScipyPointClusteringUtils.POINT_LIMIT,
+            self.tr('Hierarchical clustering point limit'),
+            10000
+        ))
 
     def unload(self):
         """Setting should be removed here, so they do not appear anymore
         when the plugin is unloaded.
         """
         AlgorithmProvider.unload(self)
+        ProcessingConfig.removeSetting(
+            ScipyPointClusteringUtils.POINT_LIMIT
+        )
 
     def getName(self):
         """This is the name that will appear on the toolbox group.

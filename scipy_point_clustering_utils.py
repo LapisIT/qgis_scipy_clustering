@@ -36,6 +36,8 @@ __revision__ = '$Format:%H$'
 
 class ScipyPointClusteringUtils(object):
 
+    POINT_LIMIT = 'POINT_LIMIT'
+
     @staticmethod
     def getIcon():
         return QIcon(os.path.join(
